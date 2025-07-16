@@ -1,0 +1,5 @@
+flask
+# Gunicorn is required for production WSGI server
+gunicorn
+# Pillow is used for image optimization (optimize_images.py)
+pillow 

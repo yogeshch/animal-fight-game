@@ -1,0 +1,136 @@
+{% extends 'layout.html' %}
+{% block content %}
+<style>
+    /* Modern background gradient */
+    body {
+        background: linear-gradient(135deg, #e0eafc 0%, #cfdef3 100%);
+    }
+    .battle-arena {
+        position: relative;
+        background: rgba(255,255,255,0.85);
+        border-radius: 24px;
+        box-shadow: 0 8px 32px rgba(44, 62, 80, 0.15);
+        padding: 32px 16px 24px 16px;
+        margin-bottom: 32px;
+        overflow: hidden;
+    }
+    .animal-img {
+        transition: box-shadow 0.3s, transform 0.3s;
+        border-radius: 16px;
+        box-shadow: 0 4px 16px rgba(52, 152, 219, 0.15);
+        background: #fff;
+        border: 3px solid transparent;
+    }
+    .slide-in-left {
+        animation: slideInLeft 0.8s cubic-bezier(.68,-0.55,.27,1.55);
+    }
+    .slide-in-right {
+        animation: slideInRight 0.8s cubic-bezier(.68,-0.55,.27,1.55);
+    }
+    @keyframes slideInLeft {
+        from { transform: translateX(-120%) scale(0.8) rotate(-10deg); opacity: 0; }
+        to { transform: translateX(0) scale(1) rotate(0); opacity: 1; }
+    }
+    @keyframes slideInRight {
+        from { transform: translateX(120%) scale(0.8) rotate(10deg); opacity: 0; }
+        to { transform: translateX(0) scale(1) rotate(0); opacity: 1; }
+    }
+    .winner-glow {
+        box-shadow: 0 0 32px 8px #ffe066, 0 4px 16px rgba(52, 152, 219, 0.15);
+        border-color: #ffe066;
+        animation: winnerPulse 1s infinite alternate;
+    }
+    @keyframes winnerPulse {
+        from { box-shadow: 0 0 32px 8px #ffe066, 0 4px 16px rgba(52, 152, 219, 0.15); }
+        to { box-shadow: 0 0 48px 16px #ffe066, 0 4px 16px rgba(52, 152, 219, 0.15); }
+    }
+    .loser-fade {
+        opacity: 0.5;
+        filter: grayscale(60%);
+    }
+    .vs-animate {
+        animation: vsPulse 1.2s infinite alternate;
+    }
+    @keyframes vsPulse {
+        from { transform: scale(1) rotate(-5deg); text-shadow: 0 0 8px #f1c40f; }
+        to { transform: scale(1.2) rotate(5deg); text-shadow: 0 0 24px #f1c40f; }
+    }
+    .shake {
+        animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+    }
+    @keyframes shake {
+        10%, 90% { transform: translateX(-2px); }
+        20%, 80% { transform: translateX(4px); }
+        30%, 50%, 70% { transform: translateX(-8px); }
+        40%, 60% { transform: translateX(8px); }
+    }
+</style>
+<div class="battle-arena">
+    <div class="text-center mb-3">
+        <h3 class="mb-2" style="color: #3498db; letter-spacing: 1px;">Battle Time!</h3>
+        <div class="mb-2">
+            <span class="fw-bold">Round {{ round_num }}</span> &nbsp;|&nbsp;
+            <span style="color:#27ae60;">You: {{ player_score }}</span> &nbsp;|&nbsp;
+            <span style="color:#e74c3c;">Computer: {{ computer_score }}</span>
+        </div>
+    </div>
+    {% if not pre_round %}
+    <div class="row justify-content-center align-items-center mb-4">
+        <div class="col-5 text-center">
+            <img id="player-img" src="{{ url_for('static', filename='images/' + player_animal + '.jpg') }}" class="img-fluid rounded shadow animal-img slide-in-left {% if result == 'player' %}winner-glow{% elif result == 'computer' %}loser-fade{% endif %}" style="width:200px; height:200px; object-fit:cover;">
+            <div class="fw-bold mt-2" style="color:#222;">{{ player_animal.capitalize() }}</div>
+            <div style="color:#3498db;">Power: {{ player_value }}</div>
+        </div>
+        <div class="col-2 text-center">
+            <span id="vs-text" class="display-4 fw-bold vs-animate" style="color:#f1c40f; letter-spacing:2px;">VS</span>
+        </div>
+        <div class="col-5 text-center">
+            <img id="computer-img" src="{{ url_for('static', filename='images/' + computer_animal + '.jpg') }}" class="img-fluid rounded shadow animal-img slide-in-right {% if result == 'computer' %}winner-glow{% elif result == 'player' %}loser-fade{% endif %}" style="width:200px; height:200px; object-fit:cover;">
+            <div class="fw-bold mt-2" style="color:#222;">{{ computer_animal.capitalize() }}</div>
+            <div style="color:#e74c3c;">Power: {{ computer_value }}</div>
+        </div>
+    </div>
+    <div class="text-center mb-4">
+        <div id="result-text" class="fs-5" style="color:#222;">
+            {% if result == 'player' %}
+                🏆 You win this round!
+            {% elif result == 'computer' %}
+                🤖 Computer wins this round!
+            {% else %}
+                🤝 It's a tie!
+            {% endif %}
+            <br>
+            <span class="small">({{ player_value }} vs {{ computer_value }})</span>
+        </div>
+    </div>
+    {% endif %}
+    <form method="post">
+        <div class="text-center">
+            {% if pre_round %}
+                <button type="submit" class="btn btn-lg btn-primary">Begin Round 1</button>
+            {% elif is_last_round %}
+                <button type="submit" class="btn btn-lg btn-success">See Results</button>
+            {% else %}
+                <button type="submit" class="btn btn-lg btn-primary">Next Round</button>
+            {% endif %}
+        </div>
+    </form>
+</div>
+<script>
+    // Add shake effect to winner image and result text
+    window.addEventListener('DOMContentLoaded', function() {
+        var result = "{{ result }}";
+        if (result === 'player') {
+            document.getElementById('player-img')?.classList.add('shake');
+            document.getElementById('result-text')?.classList.add('shake');
+        } else if (result === 'computer') {
+            document.getElementById('computer-img')?.classList.add('shake');
+            document.getElementById('result-text')?.classList.add('shake');
+        } else if (result === 'tie') {
+            document.getElementById('player-img')?.classList.add('shake');
+            document.getElementById('computer-img')?.classList.add('shake');
+            document.getElementById('result-text')?.classList.add('shake');
+        }
+    });
+</script>
+{% endblock %} 

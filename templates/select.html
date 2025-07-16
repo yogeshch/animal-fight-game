@@ -1,0 +1,35 @@
+{% extends 'layout.html' %}
+{% block content %}
+<div class="text-center mb-3">
+    <h3 class="mb-4" style="color: #3498db;">Select 3 Animals for Battle!</h3>
+</div>
+<form method="post" id="animal-form">
+    <div class="row justify-content-center">
+        {% for animal in animals %}
+        <div class="col-6 col-sm-4 col-md-3 col-lg-2 mb-4">
+            <label class="animal-card card shadow-sm p-2" style="cursor:pointer;">
+                <input type="checkbox" name="selected_animals" value="{{ animal }}" class="form-check-input d-none animal-checkbox">
+                <img src="{{ url_for('static', filename='images/' + animal + '.jpg') }}" class="img-fluid rounded mb-2" style="width:200px; height:200px; object-fit:cover;">
+                <div class="fw-bold" style="color:#222;">{{ animal.capitalize() }}</div>
+            </label>
+        </div>
+        {% endfor %}
+    </div>
+    <div class="text-center mt-3">
+        <button type="submit" class="btn btn-lg btn-primary" id="start-btn" disabled>Start Battle</button>
+    </div>
+</form>
+<script>
+const checkboxes = document.querySelectorAll('.animal-checkbox');
+const startBtn = document.getElementById('start-btn');
+checkboxes.forEach(cb => {
+    cb.addEventListener('change', () => {
+        let checked = document.querySelectorAll('.animal-checkbox:checked');
+        startBtn.disabled = checked.length !== 3;
+        // Highlight selected cards
+        document.querySelectorAll('.animal-card').forEach(card => card.classList.remove('border-primary', 'shadow'));
+        checked.forEach(cb => cb.closest('.animal-card').classList.add('border-primary', 'shadow'));
+    });
+});
+</script>
+{% endblock %} 
